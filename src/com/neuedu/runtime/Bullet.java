@@ -14,6 +14,7 @@ import java.util.List;
 public class Bullet extends BaseSprite implements Moveable, Drawable {
     private Image image;
 
+
     private int speed = FrameConstant.FRAME_SPEED * 5;
 
     public Bullet() {
@@ -24,12 +25,13 @@ public class Bullet extends BaseSprite implements Moveable, Drawable {
     public Bullet(int x, int y, Image image) {
         super(x, y);
         this.image = image;
+
     }
 
     @Override
     public void draw(Graphics g) {
-        g.drawImage(image, getX(), getY(), image.getWidth(null), image.getHeight(null), null);
         move();
+        g.drawImage(image, getX(), getY(), image.getWidth(null), image.getHeight(null), null);
         borderCheck();
 
     }
@@ -60,8 +62,18 @@ public class Bullet extends BaseSprite implements Moveable, Drawable {
             if (enemyPlane.getRectangle().intersects(this.getRectangle())){
                 enemyPlaneList.remove(enemyPlane);
                 gameFrame.bulletList.remove(this);
+                enemyPlane.setEnemyPlaneBlood(enemyPlane.getEnemyPlaneBlood() - 2);
+                gameFrame.enemyPlane.setEnemyPlaneBlood(gameFrame.enemyPlane.getEnemyPlaneBlood()-2);
+                gameFrame.score += 1;
+                if (enemyPlane.getEnemyPlaneBlood() <= 0){
+                    gameFrame.score += enemyPlane.getType() * 5;
+                }
+
             }
         }
+
+
+
 
     }
 
@@ -75,6 +87,21 @@ public class Bullet extends BaseSprite implements Moveable, Drawable {
             }
         }
 
+    }
+
+    //子弹与Boss
+    public void collisionCheck2(List<Boss> bossList){
+        for (Boss boss : bossList ) {
+            if (boss.getRectangle().intersects(this.getRectangle())) {
+                GameFrame gameFrame = DateStore.get("gameFrame");
+                gameFrame.bulletList.remove(this);
+                boss.setBossblood(boss.getBossblood() - 1);
+                gameFrame.score += 5;
+                if (boss.getBossblood() == 0) {
+                    gameFrame.score += 100;
+                }
+            }
+        }
     }
 
 }

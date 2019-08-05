@@ -1,6 +1,7 @@
 package com.neuedu.base;
 
 import java.awt.*;
+import java.util.Random;
 
 public abstract class BaseSprite {
 
@@ -32,6 +33,13 @@ public abstract class BaseSprite {
     public void setY(int y) {
         this.y = y;
     }
+
+
+    public static Random random = new Random();
+
+    public boolean sleep = false;
+
+    public static int pass = 0;
 
 
 

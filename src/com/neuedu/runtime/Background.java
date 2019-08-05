@@ -5,17 +5,17 @@ import com.neuedu.base.Drawable;
 import com.neuedu.base.Moveable;
 import com.neuedu.constant.FrameConstant;
 import com.neuedu.util.ImageMap;
-import com.neuedu.util.ImageUtil;
 
 import java.awt.*;
 
 public class Background extends BaseSprite implements Moveable, Drawable {
 
     private Image image;
+    private   int index = 0;
 
-    private int speed =  FrameConstant.FRAME_SPEED;
     public Background() {
-        this(0,FrameConstant.FRAME_HEIGHT-ImageMap.get("bg01").getHeight(null), ImageMap.get("bg01"));
+        this(0,FrameConstant.FRAME_HEIGHT-ImageMap.get("bg01").getHeight(null)+1000,
+                ImageMap.get("bg01"));
 
     }
 
@@ -24,16 +24,26 @@ public class Background extends BaseSprite implements Moveable, Drawable {
         this.image = image;
     }
 
+
     @Override
     public void move() {
+        index++;
+        if(index < 600){
+            setY(getY() + FrameConstant.FRAME_SPEED * 2);
+        }else if(index >= 600 && index <= 1200){
+            setY(getY() - FrameConstant.FRAME_SPEED * 2);
+        }else{
+            index = 0;
+        }
 
-        setY(getY()+speed);
     }
 
     @Override
     public void draw(Graphics g) {
+        move();
 
         g.drawImage(image,getX(),getY(),image.getWidth(null),image.getHeight(null),null);
-        move();
+
+
     }
 }

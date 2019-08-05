@@ -14,31 +14,46 @@ public class EnemyBullet extends BaseSprite implements Moveable, Drawable {
 
     private Image image;
 
-    private int speed = FrameConstant.FRAME_SPEED * 3;
+
+    private int speed = FrameConstant.FRAME_SPEED * 5;
+
+    private int type;
+
 
     public EnemyBullet() {
-        this(0, 0, ImageMap.get("epb01"));
+        this(0, 0, ImageMap.get("epb02"),1);
 
     }
 
-    public EnemyBullet(int x, int y, Image image) {
+    public EnemyBullet(int x, int y, Image image,int type) {
         super(x, y);
         this.image = image;
+        this.type = type;
+
+
+
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
     }
 
     @Override
     public void draw(Graphics g) {
-        g.drawImage(image,getX(),getY(),image.getWidth(null),image.getHeight(null),null);
         move();
         borderCheck();
+        g.drawImage(image,getX(),getY(),image.getWidth(null),image.getHeight(null),null);
+
     }
 
     @Override
     public void move() {
 
         setY(getY() + speed);
-
-
 
     }
     public void borderCheck() {
@@ -53,14 +68,8 @@ public class EnemyBullet extends BaseSprite implements Moveable, Drawable {
         return  new Rectangle(getX(),getY(),image.getWidth(null),image.getHeight(null));
     }
 
-    public void collisionCheck(Plane plane){
-        GameFrame gameFrame = DateStore.get("gameFrame");
-            if (plane.getRectangle().intersects(this.getRectangle())){
-                gameFrame.enemyPlaneList.remove(this);
-                gameFrame.gameOver = true;
-            }
 
-    }
+
 
 
 

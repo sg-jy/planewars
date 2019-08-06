@@ -66,6 +66,7 @@ public class EnemyPlane extends BaseSprite implements Moveable, Drawable {
         super(x, y);
         this.type = type;
         this.image = image;
+        this.enemyPlaneBlood = enemyPlaneBlood;
 
 
     }

@@ -14,19 +14,28 @@ import java.util.List;
 
 public class Plane extends BaseSprite implements Moveable, Drawable {
 
-    private Image image ;
-    private Image image1 ;
+    private Image image;
+    private Image image1;
 
     private int index = 0;//画的次数
 
-    private boolean up,right,down,left;
+    private boolean up, right, down, left;
 
-    private boolean fire ;
+    private boolean fire;
 
     public static boolean pause;
 
-    private  int type =0;//飞机类型
+    private int type = 0;//飞机类型
 
+    public static boolean noEnemy;//无敌
+
+    public static int noEnemyTime = 200;//无敌时间
+
+    public static int a = 0;//无敌计时
+
+    public static int getA() {
+        return a;
+    }
 
     private int speed = FrameConstant.FRAME_SPEED * 5;
 
@@ -42,18 +51,19 @@ public class Plane extends BaseSprite implements Moveable, Drawable {
         this.myPlaneBlood = myplaneblood;
     }
 
-
+    public static int getNoEnemyTime() {
+        return noEnemyTime;
+    }
 
     public Plane() {
         //飞机初始位置
-        this( (FrameConstant.FRAME_WIDTH- ImageMap.get("my01").getHeight(null))/2 - 10,
-                FrameConstant.FRAME_HEIGHT-ImageMap.get("my01").getHeight(null),
-                ImageMap.get("my01"),ImageMap.get("my02"),1);
+        this((FrameConstant.FRAME_WIDTH - ImageMap.get("my01").getHeight(null)) / 2 - 10,
+                FrameConstant.FRAME_HEIGHT - ImageMap.get("my01").getHeight(null),
+                ImageMap.get("my01"), ImageMap.get("my02"), 1);
     }
 
 
-
-    public Plane(int x, int y,Image image,Image image1,int type) {
+    public Plane(int x, int y, Image image, Image image1, int type) {
         super(x, y);
         this.image = ImageMap.get("my01");
         this.image1 = ImageMap.get("my02");
@@ -73,23 +83,27 @@ public class Plane extends BaseSprite implements Moveable, Drawable {
 
         move();
         fire();
-        if(type == 1){
-            g.drawImage(image,getX(),getY(),image.getWidth(null),image.getHeight(null),null);
+        if (type == 1) {
+            g.drawImage(image, getX(), getY(), image.getWidth(null), image.getHeight(null), null);
 
         }
-        if(type == 2){
-            g.drawImage(image1,getX(),getY(),image1.getWidth(null),image1.getHeight(null),null);
+        if (type == 2) {
+            g.drawImage(image1, getX(), getY(), image1.getWidth(null), image1.getHeight(null), null);
 
         }
 
 
-        if (fire){
+        if (fire) {
             index++;
             if (index >= 10) {
                 index = 0;
             }
-        }else {
+        } else {
             index = 0;
+        }
+
+        if (noEnemy) {
+            noEnemy();
         }
 
     }
@@ -99,39 +113,42 @@ public class Plane extends BaseSprite implements Moveable, Drawable {
      * 开火方法：判断开关是否打开
      * 打开则创建一个子弹对象放入到gameFrame的子弹集合中
      */
-    public void fire(){
+    public void fire() {
         if (fire && index == 0) {
-            GameFrame gameFrame =  DateStore.get("gameFrame");
+            GameFrame gameFrame = DateStore.get("gameFrame");
             gameFrame.bulletList.add(new Bullet(
-                    getX()+ (image.getWidth(null)/2) - (ImageMap.get("myb01").getWidth(null)/2),
+                    getX() + (image.getWidth(null) / 2) - (ImageMap.get("myb01").getWidth(null) / 2),
                     getY() - ImageMap.get("myb01").getHeight(null),
                     ImageMap.get("myb01")
             ));
         }
 
     }
+
     /**
      * 移动方法
      */
     @Override
     public void move() {
-        if(up){
+        if (up) {
             setY(getY() - speed);
         }
-        if(right){
+        if (right) {
             setX(getX() + speed);
         }
-        if(down){
+        if (down) {
             setY(getY() + speed);
         }
-            if(left){
+        if (left) {
             setX(getX() - speed);
         }
 
         borderCheck();
+
+
     }
 
-    public  void borderCheck(){
+    public void borderCheck() {
         if (getX() < 0) {
             setX(0);
         }
@@ -148,8 +165,7 @@ public class Plane extends BaseSprite implements Moveable, Drawable {
     }
 
 
-
-    public void keyPressed(KeyEvent e){
+    public void keyPressed(KeyEvent e) {
         if (e.getExtendedKeyCode() == KeyEvent.VK_W) {
             up = true;
         }
@@ -169,7 +185,8 @@ public class Plane extends BaseSprite implements Moveable, Drawable {
             pause = !pause;
         }
     }
-    public void keyReleased(KeyEvent e){
+
+    public void keyReleased(KeyEvent e) {
         if (e.getExtendedKeyCode() == KeyEvent.VK_W) {
             up = false;
         }
@@ -191,75 +208,108 @@ public class Plane extends BaseSprite implements Moveable, Drawable {
 
 
     //获取我方飞机矩形
-    public Rectangle getRectangle(){
-            return new Rectangle(getX(),getY(),image.getWidth(null),image.getHeight(null));
+    public Rectangle getRectangle() {
+        return new Rectangle(getX(), getY(), image.getWidth(null), image.getHeight(null));
 
     }
 
     //检测我方飞机与敌方飞机的碰撞
-    public void collisionCheck(List<EnemyPlane> enemyPlaneList){
+    public void collisionCheck(List<EnemyPlane> enemyPlaneList) {
+        GameFrame gameFrame = DateStore.get("gameFrame");
         for (EnemyPlane enemyPlane : enemyPlaneList) {
-            if (enemyPlane.getRectangle().intersects(this.getRectangle())) {
-                enemyPlaneList.remove(enemyPlane);
-                GameFrame gameFrame = DateStore.get("gameFrame");
-                if (gameFrame.enemyPlane.getType() == 1){
-                    myPlaneBlood -= FrameConstant.BLOOD ;
+            if (gameFrame.enemyPlane.getType() == 1) {
+                if (enemyPlane.getRectangle().intersects(this.getRectangle())) {
+                    enemyPlaneList.remove(enemyPlane);
+                    if(!noEnemy){
+                        myPlaneBlood -= FrameConstant.BLOOD;
+                    }
                 }
-                if (gameFrame.enemyPlane.getType() == 2){
-                    myPlaneBlood -= FrameConstant.BLOOD * 2;
-                }
-                if (gameFrame.enemyPlane.getType() == 3){
-                    myPlaneBlood -= FrameConstant.BLOOD * 3;
-                }
-                if (gameFrame.enemyPlane.getType() == 4){
-                    myPlaneBlood -= FrameConstant.BLOOD * 4;
-                }
-
-
             }
+
+            if (gameFrame.enemyPlane.getType() == 2) {
+                if (enemyPlane.getRectangle().intersects(this.getRectangle())) {
+                    enemyPlaneList.remove(enemyPlane);
+                    if(!noEnemy){
+                        myPlaneBlood -= FrameConstant.BLOOD*2;
+                    }
+                }
+            }
+
+            if (gameFrame.enemyPlane.getType() == 3) {
+                if (enemyPlane.getRectangle().intersects(this.getRectangle())) {
+                    enemyPlaneList.remove(enemyPlane);
+                    if(!noEnemy){
+                        myPlaneBlood -= FrameConstant.BLOOD*3;
+                    }
+                }
+            }
+
+            if (gameFrame.enemyPlane.getType() == 4) {
+                if (enemyPlane.getRectangle().intersects(this.getRectangle())) {
+                    enemyPlaneList.remove(enemyPlane);
+                    if(!noEnemy){
+                        myPlaneBlood -= FrameConstant.BLOOD*4;
+                    }
+                }
+            }
+
+
+
         }
 
     }
 
 
-
-    //检测我方飞机与敌方飞机的碰撞
-    public void collisionCheckPlanAndEnemyBullet(List<EnemyBullet> enemyBulletList){
+    //检测我方飞机与敌方子弹的碰撞
+    public void collisionCheckPlanAndEnemyBullet(List<EnemyBullet> enemyBulletList) {
         for (EnemyBullet enemyBullet : enemyBulletList) {
             if (enemyBullet.getRectangle().intersects(this.getRectangle())) {
                 enemyBulletList.remove(enemyBullet);
                 GameFrame gameFrame = DateStore.get("gameFrame");
+                if (!noEnemy){
                     myPlaneBlood -= FrameConstant.BLOOD;
-
-
-
+                }
             }
         }
-
     }
+
+    //检测我方飞机与敌方Boss的碰撞
+    public void collisionCheckPlanAndEnemyBoss(List<Boss> bossList) {
+        for (Boss boss : bossList) {
+            if (boss.getRectangle().intersects(this.getRectangle())) {
+                GameFrame gameFrame = DateStore.get("gameFrame");
+                if (!noEnemy){
+                    gameFrame.gameOver = true;
+                }
+            }
+        }
+    }
+
 
 
     /**
      * 边缘检测我方飞机与加子弹道具
+     *
      * @param addBUlletPropList
      */
     public void collisionCheckPlaneAndBulletProp(List<AddBUlletProp> addBUlletPropList) {
 
-            for (AddBUlletProp addBUlletProp : addBUlletPropList) {
-                if (addBUlletProp.getRectangle().intersects(this.getRectangle())) {
-                    addBUlletPropList.remove(addBUlletProp);
-                    GameFrame gameFrame = DateStore.get("gameFrame");
-                    gameFrame.plane.setType(type++);
+        for (AddBUlletProp addBUlletProp : addBUlletPropList) {
+            if (addBUlletProp.getRectangle().intersects(this.getRectangle())) {
+                addBUlletPropList.remove(addBUlletProp);
+                GameFrame gameFrame = DateStore.get("gameFrame");
+                gameFrame.plane.setType(type++);
 
 
-                }
             }
+        }
 
     }
 
 
     /**
      * 边缘检测我方飞机与加血道具
+     *
      * @param addBloodPropListdB
      */
     public void collisionCheckPlaneAndBloodProp(List<AddBloodProp> addBloodPropListdB) {
@@ -268,8 +318,8 @@ public class Plane extends BaseSprite implements Moveable, Drawable {
                 addBloodPropListdB.remove(addBloodProp);
                 if ((myPlaneBlood += 2) >= 20) {
                     myPlaneBlood = 20;
-                }else{
-                    myPlaneBlood += FrameConstant.BLOOD ;
+                } else {
+                    myPlaneBlood += FrameConstant.BLOOD;
                 }
 
             }
@@ -278,36 +328,50 @@ public class Plane extends BaseSprite implements Moveable, Drawable {
     }
 
     private static int count = 0;
+
     /**
      * 边缘检测我方飞机与保护道具
+     *
      * @param addProtectPropsList
      */
     public void collisionCheckPlaneAndProtectProp(List<AddProtectProp> addProtectPropsList) {
+
         for (AddProtectProp addProtectProp : addProtectPropsList) {
             if (addProtectProp.getRectangle().intersects(this.getRectangle())) {
                 addProtectPropsList.remove(addProtectProp);
-                if (count>0&&count<1000){
-                    count++;
-                    //遍历我方子弹集合，调用collisionCheck方法，判断我方子弹与敌方飞机的碰撞
-                    GameFrame gameFrame = DateStore.get("gameFrame");
-                    for (Bullet bullet : gameFrame.bulletList) {
-                        //遍历我方子弹集合，调用collisionCheck方法，判断我方子弹与敌方子弹的碰撞
-                        bullet.collisionCheck1(gameFrame.enemyBulletList);
-                        myPlaneBlood = myPlaneBlood;
-                    }
-
-                }else {
-                    count = 0;
-                }
-
-
+                noEnemy = true;
+//                下面的注释部分全部干掉
+                //**************************************************************************
+//                if (count >= 0 && count < 1000) {
+//                    count++;
+////                    遍历我方子弹集合，调用collisionCheck方法，判断我方子弹与敌方飞机的碰撞
+//                    GameFrame gameFrame = DateStore.get("gameFrame");
+//                    for (Bullet bullet : gameFrame.bulletList) {
+////                        遍历我方子弹集合，调用collisionCheck方法，判断我方子弹与敌方子弹的碰撞
+//                        bullet.collisionCheck1(gameFrame.enemyBulletList);
+//                        myPlaneBlood = myPlaneBlood;
+//                    }
+//                } else {
+//                    count = 0;
+//                }
             }
         }
+    }
+
+//    判定无敌的方法
+    public void noEnemy() {
+        if (a >= 0 && a < noEnemyTime) {
+            a++;
+        }else{
+            a = 0;
+            noEnemy = false;
+        }
+
 
     }
 
 
-
-
-
 }
+/*
+故意加的**，让你思考一下怎么实现的，别蒙圈
+添加无敌道具笑脸，无敌时间持续200次刷新，并且时间不叠加，无敌状态时界面进行提示，状态结束后提示消失*/

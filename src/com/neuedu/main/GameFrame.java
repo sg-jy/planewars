@@ -19,8 +19,8 @@ public class GameFrame extends Frame {
     //创建敌方飞机对象
     public final EnemyPlane enemyPlane = new EnemyPlane();
 
-    //创建敌方子弹
-    public final EnemyBullet enemyBullet = new EnemyBullet();
+/*    //创建敌方子弹
+    public final EnemyBullet enemyBullet = new EnemyBullet();*/
 
 
 
@@ -57,6 +57,8 @@ public class GameFrame extends Frame {
     //设置游戏结束默认false，一直继续
     public boolean gameOver = false;
 
+    public boolean bossShow = false;
+
     public int score = 0;
 
     String level = null;
@@ -75,7 +77,7 @@ public class GameFrame extends Frame {
                     //画飞机
                     plane.draw(g);
                     //关卡一画第一种飞机
-                    if (enemyPlane.getCount() >= 0 && enemyPlane.getCount() < 30) {
+                    if (enemyPlane.getCount() >= 0 && enemyPlane.getCount() < 10) {
                         if (BaseSprite.random.nextInt(1000) >= 985) {
                             GameFrame gameFrame = DateStore.get("gameFrame");
                             gameFrame.enemyPlaneList.add(new EnemyPlane(BaseSprite.random.nextInt(FrameConstant.FRAME_WIDTH - ImageMap.get("ep01").getWidth(null)),
@@ -89,7 +91,7 @@ public class GameFrame extends Frame {
                     }
 
                     //关卡一画第二种飞机
-                    if (enemyPlane.getCount() >= 30 && enemyPlane.getCount() < 50 && enemyPlaneList.isEmpty()) {
+                    if (enemyPlane.getCount() >= 10 && enemyPlane.getCount() < 18 && enemyPlaneList.isEmpty()) {
                         if (BaseSprite.random.nextInt(1000) >= 994) {
                             GameFrame gameFrame = DateStore.get("gameFrame");
                             gameFrame.enemyPlaneList.add(new EnemyPlane(BaseSprite.random.nextInt(FrameConstant.FRAME_WIDTH - ImageMap.get("ep02").getWidth(null)),
@@ -106,7 +108,7 @@ public class GameFrame extends Frame {
                         level = "二";
                     }
 
-                    if (enemyPlane.getCount() >= 50 && enemyPlane.getCount() < 60 && enemyPlaneList.isEmpty()) {
+                    if (enemyPlane.getCount() >= 18 && enemyPlane.getCount() < 24 && enemyPlaneList.isEmpty()) {
                         if (BaseSprite.random.nextInt(1000) >= 985) {
                             GameFrame gameFrame = DateStore.get("gameFrame");
                             gameFrame.enemyPlaneList.add(new EnemyPlane(BaseSprite.random.nextInt(FrameConstant.FRAME_WIDTH - ImageMap.get("ep03").getWidth(null)),
@@ -125,7 +127,7 @@ public class GameFrame extends Frame {
 
                     }
 
-                    if (enemyPlane.getCount() >= 60 && enemyPlane.getCount() < 66 && enemyPlaneList.isEmpty()) {
+                    if (enemyPlane.getCount() >= 24 && enemyPlane.getCount() < 28 && enemyPlaneList.isEmpty()) {
                         if (BaseSprite.random.nextInt(1000) >= 985) {
                             GameFrame gameFrame = DateStore.get("gameFrame");
                             //飞机初始生成位置
@@ -146,8 +148,8 @@ public class GameFrame extends Frame {
 
 
 
-                    if (enemyPlane.getCount() >= 66 && enemyPlane.getCount() < 68 && enemyPlaneList.isEmpty()) {
-                                if (BaseSprite.random.nextInt(1000) >= 985) {
+                    if (enemyPlane.getCount() >= 28 && enemyPlane.getCount() < 29 && enemyPlaneList.isEmpty()) {
+                            if (BaseSprite.random.nextInt(1000) >= 985) {
                                 GameFrame gameFrame = DateStore.get("gameFrame");
                                 //飞机初始生成位置
                                 gameFrame.bossList.add(new Boss((FrameConstant.FRAME_WIDTH - ImageMap.get("boss01").getWidth(null)) / 2,
@@ -160,6 +162,12 @@ public class GameFrame extends Frame {
                             level = "五";
                         }
 
+                    if (level == "五") {
+                        g.setColor(Color.blue);
+                        g.setFont(new Font("Serif", Font.BOLD , 27));
+                        g.drawString("BossHP： "+boss.getBossblood(), 300, 140);
+
+                    }
                     if (BaseSprite.random.nextInt(1000) >= 996) {
                         //往容器里添加新的加血道具
                         GameFrame gameFrame = DateStore.get("gameFrame");
@@ -175,6 +183,7 @@ public class GameFrame extends Frame {
                                 300, ImageMap.get("protect")));
                     }
 
+/*
 
                     if (BaseSprite.random.nextInt(1000) >= 998) {
 
@@ -183,6 +192,7 @@ public class GameFrame extends Frame {
                         gameFrame.addBUlletPropList.add(new AddBUlletProp(BaseSprite.random.nextInt(FrameConstant.FRAME_WIDTH - ImageMap.get("addBullet").getWidth(null)),
                                 130, ImageMap.get("addBullet")));
                     }
+*/
 
 
                     g.setColor(Color.red);
@@ -247,6 +257,10 @@ public class GameFrame extends Frame {
                     //我机与敌机子弹的碰撞
                     plane.collisionCheckPlanAndEnemyBullet(enemyBulletList);
 
+                    //我机与敌机Boss的碰撞
+                    plane.   collisionCheckPlanAndEnemyBoss(bossList);
+
+
 
 
 
@@ -274,19 +288,27 @@ public class GameFrame extends Frame {
 
                     g.setColor(Color.yellow);
                     g.setFont(new Font("行楷", Font.BOLD, 30));
-                    g.drawString("血量：" + plane.getMyplaneblood(), 500, 140);
+                    g.drawString("MyHP：" + plane.getMyplaneblood(), 500, 140);
                 }
+                if(plane.noEnemy){
+                    g.setFont(new Font("黑体",0,30));
+                    g.setColor(new Color(plane.getA(),200-plane.getA(),0));
+                    g.drawString("无敌时间"+plane.getA()+"/"+plane.getNoEnemyTime(),280,850);
+                }
+
             }
-            if (boss.getBossblood() == 0) {
+            if (boss.getBossblood() <= 0) {
                 g.setColor(Color.red);
                 g.setFont(new Font("Serif", Font.BOLD | Font.ITALIC, 70));
                 g.drawString("VICTORY ! ! ! ", FrameConstant.FRAME_WIDTH / 4, FrameConstant.FRAME_HEIGHT / 2);
             }
-            if (plane.getMyplaneblood() <= 0) {
+
+            if (plane.getMyplaneblood() <= 0 || gameOver == true) {
                 g.setColor(Color.red);
                 g.setFont(new Font("Serif", Font.BOLD | Font.ITALIC, 50));
                 g.drawString(" GAME OVER ！！！", FrameConstant.FRAME_WIDTH / 4, FrameConstant.FRAME_HEIGHT / 2);
             }
+
         }
 
     }

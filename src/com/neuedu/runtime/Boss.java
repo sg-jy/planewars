@@ -18,7 +18,7 @@ public class Boss extends BaseSprite implements Moveable, Drawable {
 
     private int speed = FrameConstant.FRAME_SPEED ;
 
-    private static int bossBlood = FrameConstant.BLOOD * 10;
+    private static int bossBlood = FrameConstant.BLOOD * 100;
 
     public int getBossblood() {
         return bossBlood;
